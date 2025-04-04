@@ -161,6 +161,7 @@ freecad-utils.makeCustomizable (
         "-DBUILD_FLAT_MESH:BOOL=ON"
         "-DINSTALL_TO_SITEPACKAGES=OFF"
         "-DFREECAD_USE_PYBIND11=ON"
+        "-DBUILD_NETGEN=ON"
       ]
       ++ lib.optionals (qtVersion == 5) [
         "-DBUILD_QT5=ON"
