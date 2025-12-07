@@ -6,53 +6,59 @@
 
   pnpm_9,
   nodejs,
-  cargo-tauri_1,
+  cargo-tauri,
   pkg-config,
   wrapGAppsHook3,
   makeBinaryWrapper,
 
   openssl,
-  libsoup_2_4,
-  # webkitgtk_4_0,
+  webkitgtk_4_1,
   gst_all_1,
+  jq,
+  moreutils,
 }:
 
 rustPlatform.buildRustPackage rec {
   pname = "en-croissant";
-  version = "0.11.1";
+  version = "0.12.1";
 
   src = fetchFromGitHub {
     owner = "franciscoBSalgueiro";
     repo = "en-croissant";
     tag = "v${version}";
-    hash = "sha256-EiGML3oFCJR4TZkd+FekUrJwCYe/nGdWD9mAtKKtITQ=";
+    hash = "sha256-xSd16F3+h29g/AW3VVj9oyLWxKP8J9Y/ckULWSvmkcA=";
   };
+
+  postPatch = ''
+    jq '.plugins.updater.endpoints = [ ] | .bundle.createUpdaterArtifacts = false' src-tauri/tauri.conf.json | sponge src-tauri/tauri.conf.json
+  '';
 
   pnpmDeps = pnpm_9.fetchDeps {
     inherit pname version src;
     fetcherVersion = 1;
-    hash = "sha256-hvWXSegUWJvwCU5NLb2vqnl+FIWpCLxw96s9NUIgJTI=";
+    hash = "sha256-6qR1I1BFkzjUIRkYZn0ieOUxSMB/LTr2/rABB/nnQOA=";
   };
 
   cargoRoot = "src-tauri";
 
-  cargoHash = "sha256-6cBGOdJ7jz+mOl2EEXxoLNeX9meW+ybQxAxnnHAplIc=";
+  cargoHash = "sha256-tJ2Fsb/0wtSlvx/Z2khf/gQk4Ib24j4EzNjPL5shqAU=";
 
   buildAndTestSubdir = cargoRoot;
 
   nativeBuildInputs = [
     pnpm_9.configHook
     nodejs
-    cargo-tauri_1.hook
+    cargo-tauri.hook
     pkg-config
+    jq
+    moreutils
   ]
   ++ lib.optionals stdenv.hostPlatform.isLinux [ wrapGAppsHook3 ]
   ++ lib.optionals stdenv.hostPlatform.isDarwin [ makeBinaryWrapper ];
 
   buildInputs = lib.optionals stdenv.hostPlatform.isLinux [
     openssl
-    libsoup_2_4
-    # webkitgtk_4_0
+    webkitgtk_4_1
     gst_all_1.gstreamer
     gst_all_1.gst-plugins-base
     gst_all_1.gst-plugins-bad
@@ -66,8 +72,6 @@ rustPlatform.buildRustPackage rec {
   '';
 
   meta = {
-    # webkitgtk_4_0 was removed
-    broken = true;
     description = "Ultimate Chess Toolkit";
     homepage = "https://github.com/franciscoBSalgueiro/en-croissant/";
     license = lib.licenses.gpl3Only;
